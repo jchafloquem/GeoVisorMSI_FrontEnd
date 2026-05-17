@@ -1,0 +1,40 @@
+<!-- Rail Lateral (Toolbar Estilo Indigo) -->
+<aside class="fixed left-0 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-1 rounded-r-lg bg-primary p-2 backdrop-blur-sm shadow-xl">
+
+  <button
+    *ngFor="let item of menuItems"
+    (click)="setActive(item)"
+    [class.bg-white/20]="item.active"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all size-10 text-white hover:bg-secondary outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+    [title]="item.label">
+    <i class="bi" [ngClass]="item.icon" style="font-size: 1.2rem;"></i>
+    <span class="sr-only">{{ item.label }}</span>
+  </button>
+</aside>
+
+<!-- Panel de Búsqueda -->
+@if (activeTools().has('search')) {
+  <div cdkDrag
+       cdkDragBoundary="body"
+       class="fixed left-16 top-20 z-50 h-fit cursor-move active:cursor-grabbing shadow-2xl">
+    <app-buscar (onClose)="toggleTool('search')"></app-buscar>
+  </div>
+}
+
+<!-- Panel de Capas: Movido fuera del aside para evitar conflictos de transformación y scroll -->
+@if (activeTools().has('layers')) {
+  <div cdkDrag
+       cdkDragBoundary="body"
+       class="fixed left-16 top-30 z-50 h-fit cursor-move active:cursor-grabbing shadow-2xl">
+    <app-capas (onClose)="toggleTool('layers')"></app-capas>
+  </div>
+}
+
+<!-- Panel de Capas: Movido fuera del aside para evitar conflictos de transformación y scroll -->
+@if (activeTools().has('legend')) {
+  <div cdkDrag
+       cdkDragBoundary="body"
+       class="fixed left-16 top-30 z-50 h-fit cursor-move active:cursor-grabbing shadow-2xl">
+    <app-leyenda (onClose)="toggleTool('layers')"></app-leyenda>
+  </div>
+}
