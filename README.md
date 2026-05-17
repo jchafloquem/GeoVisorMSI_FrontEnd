@@ -1,25 +1,25 @@
-## Visor Atención al Ciudadano
+## Visor Geográfico Municipal - Distrito de San Isidro
 
-Este proyecto es un visor cartográfico avanzado desarrollado para **COFOPRI**, diseñado para la atención al ciudadano. Permite la visualización de predios y herramientas de búsqueda geoespacial.
+Este proyecto es un visor cartográfico avanzado desarrollado para la **Municipalidad de San Isidro**, diseñado para fortalecer la atención al ciudadano y la gestión del territorio. Permite la visualización interactiva de predios, zonificación y herramientas de búsqueda geoespacial dentro de la jurisdicción distrital.
 
 Desarrollado con **Angular 20** y **OpenLayers**.
 
 ## 🚀 Características Principales
 
 - **Arquitectura Standalone:** Uso de componentes independientes para mayor modularidad.
-- **Gestión de Estado con Signals:** Reactividad eficiente para coordenadas y estados del mapa.
+- **Gestión de Estado con Signals:** Reactividad eficiente para el manejo de capas, coordenadas y estados del visor en tiempo real.
 - **Mapa Interactivo:** 
   - Soporte para mapas base (Google Satellite y OpenStreetMap).
-  - Integración de capas WMS (IDEP - Límites Departamentales).
+  - Integración de servicios WMS (Zonificación, Lotes, Manzanas, Vías y Equipamiento Urbano).
   - Control de vista general (Overview Map).
   - Geolocalización en tiempo real.
-- **Búsqueda Avanzada:** Búsqueda de predios por dirección, código catastral y datos del ciudadano (DNI/Nombre).
+- **Búsqueda Catastral y Urbana:** Localización de predios por dirección municipal, código catastral y datos del ciudadano/contribuyente.
 
 ## 🛠️ Tecnologías y Dependencias
 
 - **Angular:** Framework principal.
 - **OpenLayers (ol):** Motor de renderizado de mapas.
-- **IDEP WMS:** Servicios de mapas de la Infraestructura de Datos Espaciales del Perú.
+ - **GeoServer:** Gestión y publicación de datos espaciales municipales.
 - **Google Maps API:** Capas satelitales.
 
 ## 📁 Estructura del proyecto
