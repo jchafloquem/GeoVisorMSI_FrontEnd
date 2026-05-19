@@ -28,7 +28,10 @@
       <i class="bi text-xl" [class.bi-map]="baseLayerType() === 'satellite'" [class.bi-layers-half]="baseLayerType() === 'streets'"></i>
     </button>
   </div>
-  <app-overview-map [mainMap]="olMap()!"></app-overview-map>
+
+  <div class="hidden md:block">
+    <app-overview-map [mainMap]="olMap()!"></app-overview-map>
+  </div>
 }
 
 <!-- Marcador de Usuario (Punto Azul GPS) -->

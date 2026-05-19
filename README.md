@@ -23,8 +23,6 @@ Desarrollado con **Angular 20** y **OpenLayers**.
 - **Google Maps API:** Capas satelitales.
 
 ## 📁 Estructura del proyecto
-
-```
 src/
  ├── app/
  │   ├── animation/       # Componentes, pipes y utilidades reutilizables

@@ -1,5 +1,6 @@
 import { Injectable, signal, inject, NgZone, effect } from '@angular/core';
 import { OtrosService } from './otros.service';
+import { transformExtent } from 'ol/proj';
 import {
   fromLonLat,
   OlMap,
@@ -10,17 +11,20 @@ import {
 } from '../modules/openlayers.module';
 
 /** Coordenadas iniciales del centro del mapa (longitud, latitud) */
-export const INITIAL_CENTER = [-77.0341, -12.0975];
+export const INITIAL_CENTER = [-77.0269, -12.0975];
 /** Nivel de zoom inicial del mapa */
-export const INITIAL_ZOOM = 15.5;
+export const INITIAL_ZOOM = 14;
 /** URL del servicio de mapas satelitales de Google */
-const GOOGLE_SATELLITE_URL = 'https://mt1.google.com/vt/lyrs=s&hl=es&x={x}&y={y}&z={z}';
+const GOOGLE_SATELLITE_URL = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
 /** URL del servicio de mapas de calles (OpenStreetMap) */
 export const OSM_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 /** Duración de las animaciones del mapa en milisegundos */
 export const ANIMATION_DURATION = 1000;
 /** Nivel de zoom al que se acerca el mapa al obtener la ubicación del usuario */
-export const ZOOM_LEVEL_LOCATION = 20;
+export const ZOOM_LEVEL_LOCATION = 14;
+
+/** Extensión geográfica aproximada de San Isidro [oeste, sur, este, norte] en LonLat */
+export const SAN_ISIDRO_EXTENT_LONLAT = [-77.06, -12.12, -77.015, -12.075];
 
 export interface LayerItem {
   id: string;
@@ -48,13 +52,13 @@ export interface Section {
 })
 export class MapService {
   /** Instancia del mapa OpenLayers */
-  private _map = signal<OlMap | undefined>(undefined);
+  private readonly _map = signal<OlMap | undefined>(undefined);
   /** Exposición del mapa como Signal de solo lectura */
-  private zone = inject(NgZone);
+  private readonly zone = inject(NgZone);
   public readonly map = this._map.asReadonly();
 
   /** Servicio para fuentes de datos externas */
-  private otrosService = inject(OtrosService);
+  private readonly otrosService = inject(OtrosService);
   /** Capa de imágenes satelitales (Google) */
   public satelliteLayer?: TileLayer;
   /** Capa de calles (OSM) */
@@ -97,17 +101,6 @@ export class MapService {
         { id: "limite", label: "LIMITE DE HABILITACION URBANA (NUCLEO)", visible: true, opacity: 1 },
         { id: "manzana-urbana", label: "MANZANA URBANA", visible: true, opacity: 1 },
         { id: "lote-urbano", label: "LOTE URBANO", visible: true, opacity: 1 },
-      ],
-    },
-    {
-      id: "politicos",
-      title: "Límites Políticos",
-      expanded: false,
-      layers: [
-        { id: "departamento", label: "DEPARTAMENTO", visible: true, opacity: 1 },
-        { id: "provincia", label: "PROVINCIA", visible: true, opacity: 1 },
-        { id: "distrito", label: "DISTRITO", visible: true, opacity: 1 },
-        { id: "centropoblado", label: "CENTROS POBLADOS", visible: true, opacity: 1 },
       ],
     },
   ]);
@@ -181,12 +174,21 @@ export class MapService {
     this.satelliteLayer = this.createBaseLayer(satelliteSource, 'Satélite', 'satellite');
     this.streetsLayer = this.createBaseLayer(streetsSource, 'Calles', 'streets');
 
+    // Convertimos la extensión de LonLat a la proyección del mapa (Web Mercator)
+    const restrictedExtent = transformExtent(
+      SAN_ISIDRO_EXTENT_LONLAT,
+      'EPSG:4326',
+      'EPSG:3857'
+    );
+
     const olMap = new OlMap({
       target,
       layers: [this.satelliteLayer, this.streetsLayer],
       view: new View({
         center: fromLonLat(INITIAL_CENTER),
         zoom: INITIAL_ZOOM,
+        extent: restrictedExtent,
+        minZoom: 12 // Bloquea el alejamiento para no perder el contexto del distrito
       })
     });
     this._map.set(olMap);
@@ -198,11 +200,6 @@ export class MapService {
         olMap.updateSize();
       });
     });
-
-    this.loadPeruBorder();
-    this.loadPeruProvinces();
-    this.loadPeruDistricts();
-    this.loadPeruPopulationCenters();
 
     return olMap;
   }
@@ -218,41 +215,6 @@ export class MapService {
       preload: 0, // 0 es el valor por defecto y el más eficiente para el arranque
       visible: this.baseLayerType() === type
     });
-  }
-
-  /**
-   * Carga la capa de límites departamentales del INEI.
-   * @private
-   */
-  private loadPeruBorder(): void {
-    this.addWmsLayer('departamento', this.otrosService.INEI_WMS_URL, this.otrosService.INEI_WMS_VERSION, 'Interoperabilidad:ig_departamento', 1000, undefined, 0, 17);
-  }
-
-  /**
-   * Carga la capa de límites provinciales del INEI.
-   * @private
-   */
-  private loadPeruProvinces(): void {
-    // Se oculta a partir de nivel de zoom 16 (escala aprox. 1:10000)
-    this.addWmsLayer('provincia', this.otrosService.INEI_WMS_URL, this.otrosService.INEI_WMS_VERSION, 'Interoperabilidad:ig_provincia', 1100, undefined, 8, 17);
-  }
-
-  /**
-   * Carga la capa de límites distritales del INEI.
-   * @private
-   */
-  private loadPeruDistricts(): void {
-    // Se oculta a partir de nivel de zoom 17 (escala aprox. 1:5000)
-    // Agregamos 'white-layer-filter' para poder cambiar el color vía CSS
-    this.addWmsLayer('distrito', this.otrosService.INEI_WMS_URL, this.otrosService.INEI_WMS_VERSION, 'Interoperabilidad:ig_distrito', 1200, 'Distritos', 11, 17, 'white-layer-filter');
-  }
-
-  /**
-   * Carga la capa de centros poblados del INEI.
-   * @private
-   */
-  private loadPeruPopulationCenters(): void {
-    this.addWmsLayer('centropoblado', this.otrosService.INEI_WMS_URL, this.otrosService.INEI_WMS_VERSION, 'Interoperabilidad:ig_centropoblado', 1300, 'Centros Poblados', 12);
   }
 
   /**
@@ -287,22 +249,13 @@ export class MapService {
 
     // IMPORTANTE: Guardamos la instancia de la capa en el Signal para poder manipularla después
     // Generamos la URL de la leyenda para servicios WMS (estándar GetLegendGraphic)
-    const legendUrl = `${url}${url.includes('?') ? '' : '?'}` + 
+    const legendUrl = `${url}${url.includes('?') ? '' : '?'}` +
       `SERVICE=WMS&VERSION=${version}&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=${layerName}&TRANSPARENT=true`;
 
     this.sections.update(sections => sections.map(section => ({
       ...section,
       layers: section.layers.map(l => l.id === id ? { ...l, olLayer: layer, legendUrl } : l)
     })));
-  }
-
-  /**
-   * Agrega una capa WMS desde el servicio IDEP (Límites).
-   * @param layerName Nombre técnico de la capa (ej: '0' para Departamentos, '1' para Provincias)
-   * @param title Título amigable para la capa
-   */
-  addIdepWmsLayer(layerName: string, title: string): void {
-    this.addWmsLayer(layerName, this.otrosService.WMS_URL, this.otrosService.WMS_VERSION, layerName, 100, title, 0); // Usamos layerName como ID por defecto
   }
 
   /**
