@@ -1,85 +1,78 @@
-<div
-  class="flex flex-col w-96 rounded-lg border border-primary/30 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-left-4 duration-300"
-  [class.w-96]="!isMinimized()" [class.w-64]="isMinimized()">
-  <!-- Cabecera -->
-  <div class="flex items-center justify-between bg-primary px-4 py-3">
-    <div class="flex items-center gap-2 text-white">
-      <i class="bi bi-layers-fill"></i>
-      <h3 class="font-semibold text-sm">Gestión de Capas</h3>
-    </div>
-    <div class="flex items-center gap-1">
-      <button (click)="toggleMinimize()"
-        class="text-white/80 hover:text-white hover:bg-white/10 p-1 rounded-md transition-colors"
-        [title]="isMinimized() ? 'Expandir' : 'Minimizar'">
-        <i class="bi" [ngClass]="isMinimized() ? 'bi-plus-lg' : 'bi-dash-lg'"></i>
-      </button>
-      <button (click)="onClose.emit()"
-        class="text-white/80 hover:text-white hover:bg-white/10 p-1 rounded-md transition-colors" title="Cerrar">
-        <i class="bi bi-x-lg text-sm"></i>
-      </button>
-    </div>
-  </div>
-  @if (!isMinimized()) {
+<div class="flex flex-col h-full space-y-4 animate-in fade-in duration-300">
   <!-- Lista de Secciones y Capas -->
-  <div class="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar animate-in fade-in duration-300 max-h-[65vh]">
+  <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+    <div class="space-y-3">
     @for (section of sections(); track section.id) {
-    <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden transition-all">
       <!-- Cabecera de Sección -->
       <div
-        class="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-gray-50 cursor-pointer group"
+        class="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-gray-50 cursor-pointer group"
         (click)="toggleSectionExpanded(section.id)">
-        <div class="flex items-center gap-2">
-          <i class="bi text-primary transition-transform duration-200" [class.bi-chevron-down]="section.expanded"
-            [class.bi-chevron-right]="!section.expanded"></i>
-          <span class="font-semibold text-gray-700 text-xs uppercase tracking-tight">{{ section.title }}</span>
+        <div class="flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary transition-transform duration-300"
+            [class.rotate-180]="section.expanded">
+            <i class="bi bi-chevron-down text-[10px]"></i>
+          </div>
+          <span class="font-bold text-gray-700 text-[11px] uppercase tracking-wider">{{ section.title }}</span>
         </div>
-        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button (click)="toggleAllLayersInSection(section.id, true); $event.stopPropagation()"
-            class="h-7 w-7 flex items-center justify-center text-primary/60 hover:bg-primary/10 hover:text-primary transition-all rounded-md"
+            class="h-8 w-8 flex items-center justify-center text-primary/60 hover:bg-primary/10 hover:text-primary transition-all rounded-xl"
             title="Mostrar todas">
-            <i class="bi bi-eye-fill text-sm"></i>
+            <i class="bi bi-eye-fill"></i>
           </button>
           <button (click)="toggleAllLayersInSection(section.id, false); $event.stopPropagation()"
-            class="h-7 w-7 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all rounded-md"
+            class="h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all rounded-xl"
             title="Ocultar todas">
-            <i class="bi bi-eye-slash text-sm"></i>
+            <i class="bi bi-eye-slash"></i>
           </button>
         </div>
       </div>
       <!-- Items de Capas -->
       @if (section.expanded) {
       <div
-        class="border-t border-gray-100 bg-gray-50/50 divide-y divide-gray-100 animate-in slide-in-from-top-2 duration-200">
+        class="border-t border-gray-50 bg-gray-50/30 divide-y divide-gray-50 animate-in slide-in-from-top-2 duration-300">
         @for (layer of section.layers; track layer.id) {
-        <div class="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white group/item">
-          <div class="relative flex items-center">
-            <input type="checkbox" [id]="section.id + '-' + layer.id" [checked]="layer.visible"
-              (change)="toggleLayerVisibility(section.id, layer.id)"
-              class="w-4.5 h-4.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer transition-all" />
+        <div class="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-white group/item">
+          <div class="flex items-center gap-3">
+            <div class="relative flex items-center">
+              <input type="checkbox" [id]="section.id + '-' + layer.id" [checked]="layer.visible"
+                (change)="toggleLayerVisibility(section.id, layer.id)"
+                class="w-5 h-5 rounded-lg border-gray-300 text-primary focus:ring-primary/20 cursor-pointer transition-all accent-primary" />
+            </div>
+
+            <label [for]="section.id + '-' + layer.id"
+              class="flex-1 cursor-pointer text-[11px] font-bold text-gray-600 group-hover/item:text-primary transition-colors leading-tight">
+              {{ layer.label }}
+            </label>
           </div>
 
-          <label [for]="section.id + '-' + layer.id"
-            class="flex-1 cursor-pointer text-[11px] font-medium text-gray-600 group-hover/item:text-primary transition-colors leading-tight">
-            {{ layer.label }}
-          </label>
-          <!-- Opacity Slider -->
-          <input type="range" min="0" max="100" [value]="layer.opacity * 100"
-            (input)="onOpacityChange(section.id, layer.id, $event); $event.stopPropagation()"
-            class="w-20 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-            [disabled]="!layer.visible" [class.opacity-50]="!layer.visible" [class.cursor-not-allowed]="!layer.visible"
-            title="Opacidad" />
+          <!-- Control de Opacidad -->
+          <div class="flex items-center gap-3 pl-8" [class.opacity-40]="!layer.visible">
+            <span class="text-[9px] font-bold text-gray-400 uppercase w-12">Opacidad</span>
+            <input type="range" min="0" max="100" [value]="layer.opacity * 100"
+              (input)="onOpacityChange(section.id, layer.id, $event); $event.stopPropagation()"
+              class="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+              [disabled]="!layer.visible"
+              title="Opacidad" />
+            <span class="text-[9px] font-mono font-bold text-primary w-6">{{ (layer.opacity * 100) | number:'1.0-0' }}%</span>
+          </div>
         </div>
         }
       </div>
       }
     </div>
     }
+    </div>
   </div>
+
   <!-- Pie de página -->
-  <div class="border-t border-gray-100 p-4 bg-gray-50/80 animate-in slide-in-from-top-2 duration-200">
-    <p class="text-[10px] text-gray-400 italic flex items-center gap-1">
-      <i class="bi bi-info-circle"></i> Use los interruptores para filtrar la vista del mapa.
-    </p>
+  <div class="pt-3 border-t border-gray-100 bg-white sticky bottom-0">
+    <div class="p-3 rounded-xl bg-primary/5 border border-primary/10 flex gap-3">
+      <i class="bi bi-info-circle-fill text-primary/60 text-sm"></i>
+      <p class="text-[10px] text-primary/80 leading-normal font-medium italic">
+        Use los interruptores para activar o desactivar las capas de información geográfica sobre el mapa.
+      </p>
+    </div>
   </div>
-  }
 </div>

@@ -23,11 +23,9 @@ export interface SearchResult {
   styleUrl: './buscar.css',
 })
 export class Buscar {
-  @Input() isGuest: boolean = false;  
+  @Input() isGuest: boolean = false;
   onClose = output<void>();
   onSearchResult = output<SearchResult>();
-  /** Control de minimizado */
-  isMinimized = signal(false);
   /** Control de pestañas */
   activeTab: 'direccion' | 'catastral' | 'ciudadano' = 'direccion';
   /** Campos para búsqueda por Dirección */
@@ -71,11 +69,6 @@ export class Buscar {
       estadoConservacion: "Muy Bueno",
     }
   ];
-
-  /** Alterna el estado de minimizado del panel */
-  toggleMinimize() {
-    this.isMinimized.update(v => !v);
-  }
 
   /** Formatea el código catastral mientras el usuario escribe (XX-XXX-XXX) */
   handleCodigoCatastralChange(value: string) {

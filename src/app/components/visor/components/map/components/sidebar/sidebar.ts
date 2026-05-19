@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CdkDrag } from '@angular/cdk/drag-drop';
+
 
 import { CapasComponent } from './components/capas/capas';
 import { Buscar } from './components/buscar/buscar';
@@ -17,7 +17,6 @@ import { MapService } from '../../../../../../services/map.service';
     CapasComponent,
     Buscar,
     Leyenda,
-    CdkDrag
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
@@ -28,54 +27,58 @@ export class Sidebar implements OnInit {
   /** Exponemos el signal para que el template sepa cuál está activo visualmente */
   activeTools = this.mapService.activeSidebarTools;
 
-  isExpanded = true;
+  isOpen = false;
 
-  // Mock de ítems de navegación
-  menuItems = [
-    { id: 'search', icon: 'bi bi-search', label: 'Buscar', active: false },
-    { id: 'searchint', icon: 'bi bi-funnel-fill', label: 'Busqueda Avanzada', active: false },
-    { id: 'layers', icon: 'bi bi-layers', label: 'Capas', active: false },
-    { id: 'legend', icon: 'bi bi-map', label: 'Leyenda', active: false },
-    { id: 'print', icon: 'bi bi-printer', label: 'Imprimir', active: false },
-    { id: 'accessibility', icon: 'bi bi-universal-access', label: 'Accesibilidad', active: false },
-    { id: 'settings', icon: 'bi bi-gear', label: 'Configuración', active: false },
-    { id: 'info', icon: 'bi bi-info-circle', label: 'Acerca', active: false }
+  // Ítems de navegación vinculados a las herramientas del MapService
+  menuItems: { id: string; icon: string; label: string }[] = [
+    { id: 'search', icon: 'search', label: 'Buscar' },
+    { id: 'layers', icon: 'layers', label: 'Capas' },
+    { id: 'legend', icon: 'legend_toggle', label: 'Leyenda' },
+    { id: 'print', icon: 'print', label: 'Imprimir' },
+    { id: 'settings', icon: 'settings', label: 'Configuración' },
+    { id: 'info', icon: 'info', label: 'Acerca' }
   ];
 
-  // Mock de capas estáticas para la réplica visual
-  mockLayers = [
-    { name: 'Lotes Urbanos', visible: true, opacity: 100 },
-    { name: 'Manzanas Catastrales', visible: true, opacity: 80 },
-    { name: 'Vías y Accesos', visible: false, opacity: 100 },
-    { name: 'Límites Distritales', visible: true, opacity: 50 }
-  ];
+  /** Obtiene el ID de la primera herramienta activa del Set */
+  get activeTab(): string | undefined {
+    return Array.from(this.activeTools()).pop();
+  }
+
+  /** Obtiene el título amigable de la herramienta activa */
+  get activeTitle(): string {
+    const active = this.activeTab;
+    if (!active) return '';
+    return this.menuItems.find(i => i.id === active)?.label || 'Herramienta';
+  }
 
   ngOnInit() {
-    // Sincronizamos el ítem activo por defecto con el estado global del mapa
-    this.menuItems.forEach(item => {
-      if (item.active) {
-        this.mapService.toggleSidebarTool(item.id);
-      }
-    });
+    // La alineación del estado inicial se gestiona a través de los Signals del MapService
   }
 
   toggleSidebar() {
-    this.isExpanded = !this.isExpanded;
+    this.isOpen = !this.isOpen;
   }
 
   toggleTool(toolId: string) {
     console.log('Sidebar: Recibida orden de toggle para', toolId);
     const item = this.menuItems.find(i => i.id === toolId);
     if (item) {
-      this.setActive(item);
+      this.setActive(item.id);
     }
   }
 
-  setActive(item: { id: string; icon: string; label: string; active: boolean }) {
-    item.active = !item.active;
+  setActive(toolId: string) {
+    const currentActive = this.activeTab;
 
-    // Centralizamos el estado en el servicio para que el MapComponent reaccione
-    this.mapService.toggleSidebarTool(item.id);
-    this.isExpanded = true;
+    if (currentActive === toolId) {
+      // Si es la misma, cerramos el panel
+      this.isOpen = false;
+      this.mapService.toggleSidebarTool(toolId);
+    } else {
+      // Si hay una activa diferente, primero la quitamos y ponemos la nueva
+      if (currentActive) this.mapService.toggleSidebarTool(currentActive);
+      this.mapService.toggleSidebarTool(toolId);
+      this.isOpen = true;
+    }
   }
 }

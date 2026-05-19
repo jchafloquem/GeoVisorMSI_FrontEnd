@@ -10,9 +10,9 @@ import {
 } from '../modules/openlayers.module';
 
 /** Coordenadas iniciales del centro del mapa (longitud, latitud) */
-export const INITIAL_CENTER = [-75.0152, -8.65000];
+export const INITIAL_CENTER = [-77.0341, -12.0975];
 /** Nivel de zoom inicial del mapa */
-export const INITIAL_ZOOM = 6;
+export const INITIAL_ZOOM = 15.5;
 /** URL del servicio de mapas satelitales de Google */
 const GOOGLE_SATELLITE_URL = 'https://mt1.google.com/vt/lyrs=s&hl=es&x={x}&y={y}&z={z}';
 /** URL del servicio de mapas de calles (OpenStreetMap) */
